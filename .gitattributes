@@ -1,0 +1,18 @@
+# Normalize line endings; treat Godot text resources as text.
+* text=auto eol=lf
+
+*.gd    text
+*.tscn  text
+*.tres  text
+*.godot text
+*.json  text
+*.md    text
+
+# Binary assets — don't diff or normalize.
+*.png   binary
+*.jpg   binary
+*.webp  binary
+*.ogg   binary
+*.wav   binary
+*.ttf   binary
+*.otf   binary

@@ -1,0 +1,30 @@
+# Godot 4 ignores
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# Godot build/export output
+build/
+*.exe
+*.pck
+*.zip
+*.dmg
+*.app
+
+# Mono/C# (unused, kept for safety)
+.mono/
+mono_crash.*.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Secrets — never commit Steam keys, signing certs, etc.
+.env
+secrets/
+*.keystore
+steam_appid.txt

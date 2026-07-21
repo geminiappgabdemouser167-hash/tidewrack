@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" rx="16" fill="#12202b"/>
+  <!-- fog bands -->
+  <rect x="0" y="86" width="128" height="6" fill="#22333f" opacity="0.6"/>
+  <rect x="0" y="100" width="128" height="6" fill="#22333f" opacity="0.5"/>
+  <!-- lighthouse tower -->
+  <polygon points="56,104 72,104 68,44 60,44" fill="#d7e2e8"/>
+  <rect x="58" y="52" width="12" height="6" fill="#9fb3bd"/>
+  <rect x="58" y="66" width="12" height="6" fill="#9fb3bd"/>
+  <rect x="58" y="80" width="12" height="6" fill="#9fb3bd"/>
+  <!-- lamp room -->
+  <rect x="57" y="34" width="14" height="12" fill="#2b3d49"/>
+  <!-- the light -->
+  <circle cx="64" cy="40" r="6" fill="#ffd466"/>
+  <polygon points="64,40 24,26 24,54" fill="#ffd466" opacity="0.28"/>
+  <polygon points="64,40 104,26 104,54" fill="#ffd466" opacity="0.28"/>
+</svg>
