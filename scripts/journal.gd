@@ -19,6 +19,8 @@ func _ready() -> void:
 	if gs != null:
 		if gs.has_method("get_journal_entries"):
 			restore(gs.call("get_journal_entries"))
+		if gs.has_signal("journal_reset"):
+			gs.connect("journal_reset", reset)
 		if gs.has_signal("journal_changed"):
 			gs.connect("journal_changed", _on_game_state_journal_changed)
 
