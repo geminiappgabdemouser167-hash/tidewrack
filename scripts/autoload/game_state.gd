@@ -6,6 +6,7 @@ extends Node
 ## user://save.json so "Continue" works.
 
 signal state_changed
+signal journal_reset
 signal journal_changed(entries: Array[String])
 
 const SAVE_PATH := "user://save.json"
@@ -49,6 +50,7 @@ func get_journal_entries() -> Array[String]:
 func reset_journal(notify: bool = true) -> void:
 	journal_entries.clear()
 	if notify:
+		journal_reset.emit()
 		journal_changed.emit(get_journal_entries())
 		state_changed.emit()
 
@@ -67,10 +69,8 @@ func restore_journal(entries: Variant, notify: bool = true) -> void:
 
 func new_game() -> void:
 	flags.clear()
-	reset_journal(false)
 	current_scene = "res://scenes/game.tscn"
-	journal_changed.emit(get_journal_entries())
-	state_changed.emit()
+	reset_journal()
 
 
 func has_save() -> bool:
