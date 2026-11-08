@@ -26,19 +26,20 @@ func _ready() -> void:
 
 
 func add_entry(entry_id: String) -> bool:
-	if entry_id.is_empty() or entries.has(entry_id):
+	var clean_id := entry_id.strip_edges()
+	if clean_id.is_empty() or entries.has(clean_id):
 		return false
-	entries.append(entry_id)
+	entries.append(clean_id)
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("add_journal_entry"):
-		gs.call("add_journal_entry", entry_id)
+		gs.call("add_journal_entry", clean_id)
 	_refresh_ui()
 	entries_changed.emit(get_entries())
 	return true
 
 
 func has_entry(entry_id: String) -> bool:
-	return entries.has(entry_id)
+	return entries.has(entry_id.strip_edges())
 
 
 func get_entries() -> Array[String]:
@@ -52,14 +53,24 @@ func reset() -> void:
 	entries_changed.emit(get_entries())
 
 
-## Replaces in-memory journal entries cleanly from a saved/loaded list
-## instead of appending onto prior session state.
+## Replaces in-memory journal entries cleanly from a saved/loaded value
+## without failing when given malformed outer types or broken elements.
 func restore(saved_entries: Variant) -> void:
 	entries.clear()
-	if typeof(saved_entries) == TYPE_ARRAY:
-		for entry in saved_entries:
-			if typeof(entry) == TYPE_STRING and not entry.is_empty() and not entries.has(entry):
-				entries.append(entry)
+	if saved_entries == null or typeof(saved_entries) != TYPE_ARRAY:
+		if saved_entries != null:
+			push_warning(
+				"Journal: ignoring malformed saved_entries (expected Array, got %s)."
+				% type_string(typeof(saved_entries))
+			)
+	else:
+		var raw_list: Array = saved_entries
+		for entry in raw_list:
+			if typeof(entry) != TYPE_STRING:
+				continue
+			var clean_id: String = (entry as String).strip_edges()
+			if not clean_id.is_empty() and not entries.has(clean_id):
+				entries.append(clean_id)
 	_refresh_ui()
 	entries_changed.emit(get_entries())
 
