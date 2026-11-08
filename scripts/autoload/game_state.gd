@@ -6,6 +6,7 @@ extends Node
 ## user://save.json so "Continue" works.
 
 signal state_changed
+signal journal_changed(entries: Array[String])
 
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
@@ -31,6 +32,7 @@ func add_journal_entry(entry_id: String) -> bool:
 	if entry_id.is_empty() or journal_entries.has(entry_id):
 		return false
 	journal_entries.append(entry_id)
+	journal_changed.emit(get_journal_entries())
 	state_changed.emit()
 	return true
 
@@ -43,10 +45,31 @@ func get_journal_entries() -> Array[String]:
 	return journal_entries.duplicate()
 
 
+## Clears all in-memory journal entry IDs cleanly.
+func reset_journal(notify: bool = true) -> void:
+	journal_entries.clear()
+	if notify:
+		journal_changed.emit(get_journal_entries())
+		state_changed.emit()
+
+
+## Replaces in-memory journal entry IDs cleanly from a loaded array instead of appending.
+func restore_journal(entries: Variant, notify: bool = true) -> void:
+	journal_entries.clear()
+	if typeof(entries) == TYPE_ARRAY:
+		for entry in entries:
+			if typeof(entry) == TYPE_STRING and not entry.is_empty() and not journal_entries.has(entry):
+				journal_entries.append(entry)
+	if notify:
+		journal_changed.emit(get_journal_entries())
+		state_changed.emit()
+
+
 func new_game() -> void:
 	flags.clear()
-	journal_entries.clear()
+	reset_journal(false)
 	current_scene = "res://scenes/game.tscn"
+	journal_changed.emit(get_journal_entries())
 	state_changed.emit()
 
 
@@ -91,12 +114,8 @@ func load_game() -> bool:
 	current_scene = loaded_scene if typeof(loaded_scene) == TYPE_STRING else "res://scenes/game.tscn"
 	var loaded_flags: Variant = data.get("flags", {})
 	flags = loaded_flags.duplicate() if typeof(loaded_flags) == TYPE_DICTIONARY else {}
-	journal_entries.clear()
-	var loaded_entries: Variant = data.get("journal_entries", [])
-	if typeof(loaded_entries) == TYPE_ARRAY:
-		for entry in loaded_entries:
-			if typeof(entry) == TYPE_STRING and not entry.is_empty() and not journal_entries.has(entry):
-				journal_entries.append(entry)
+	restore_journal(data.get("journal_entries", []), false)
+	journal_changed.emit(get_journal_entries())
 	state_changed.emit()
 	return true
 
