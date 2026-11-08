@@ -30,16 +30,17 @@ func get_flag(name: String, default: Variant = false) -> Variant:
 
 
 func add_journal_entry(entry_id: String) -> bool:
-	if entry_id.is_empty() or journal_entries.has(entry_id):
+	var clean_id := entry_id.strip_edges()
+	if clean_id.is_empty() or journal_entries.has(clean_id):
 		return false
-	journal_entries.append(entry_id)
+	journal_entries.append(clean_id)
 	journal_changed.emit(get_journal_entries())
 	state_changed.emit()
 	return true
 
 
 func has_journal_entry(entry_id: String) -> bool:
-	return journal_entries.has(entry_id)
+	return journal_entries.has(entry_id.strip_edges())
 
 
 func get_journal_entries() -> Array[String]:
@@ -55,13 +56,32 @@ func reset_journal(notify: bool = true) -> void:
 		state_changed.emit()
 
 
-## Replaces in-memory journal entry IDs cleanly from a loaded array instead of appending.
+## Replaces in-memory journal entry IDs cleanly from a loaded value instead of appending.
+## Malformed outer types or broken inner elements warn and fall back safely without failing load.
 func restore_journal(entries: Variant, notify: bool = true) -> void:
 	journal_entries.clear()
-	if typeof(entries) == TYPE_ARRAY:
-		for entry in entries:
-			if typeof(entry) == TYPE_STRING and not entry.is_empty() and not journal_entries.has(entry):
-				journal_entries.append(entry)
+	if entries == null:
+		push_warning("GameState: journal_entries is null; defaulting to empty journal.")
+	elif typeof(entries) != TYPE_ARRAY:
+		push_warning(
+			"GameState: malformed journal_entries (expected Array, got %s); defaulting to empty journal."
+			% type_string(typeof(entries))
+		)
+	else:
+		var raw_list: Array = entries
+		for entry in raw_list:
+			if typeof(entry) != TYPE_STRING:
+				push_warning(
+					"GameState: skipping malformed journal entry (expected String, got %s)."
+					% type_string(typeof(entry))
+				)
+				continue
+			var clean_id: String = (entry as String).strip_edges()
+			if clean_id.is_empty():
+				push_warning("GameState: skipping empty journal entry ID.")
+				continue
+			if not journal_entries.has(clean_id):
+				journal_entries.append(clean_id)
 	if notify:
 		journal_changed.emit(get_journal_entries())
 		state_changed.emit()
@@ -114,7 +134,10 @@ func load_game() -> bool:
 	current_scene = loaded_scene if typeof(loaded_scene) == TYPE_STRING else "res://scenes/game.tscn"
 	var loaded_flags: Variant = data.get("flags", {})
 	flags = loaded_flags.duplicate() if typeof(loaded_flags) == TYPE_DICTIONARY else {}
-	restore_journal(data.get("journal_entries", []), false)
+	if data.has("journal_entries"):
+		restore_journal(data["journal_entries"], false)
+	else:
+		reset_journal(false)
 	journal_changed.emit(get_journal_entries())
 	state_changed.emit()
 	return true
