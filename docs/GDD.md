@@ -25,7 +25,7 @@ who answers you) responds. Repeat across locations toward the water.
 | Save / load        | ✅ vertical slice | Single slot, `user://save.json`. |
 | Menus + settings   | ✅ vertical slice | Title, pause, volume, fullscreen. |
 | Player movement    | ✅ vertical slice | Top-down; wall collision pending. |
-| Journal            | ⏳ demo           | Tracks discovered logs; re-readable. |
+| Journal | ⏳ demo | Tracks discovered logs (re-readable); journal discoveries persist across save/load and Continue. |
 | Second location    | ⏳ demo           | The lamp room. |
 | Controller + remap  | ⏳ demo          | Currently keyboard-only, built-in actions. |
 | Localization        | ⏳ press build    | String extraction + translation tables. |
