@@ -1,8 +1,9 @@
 extends Node
-## GameState — global save/load and story flags.
+## GameState – global save/load and story flags.
 ##
 ## Autoloaded as `GameState`. Holds the narrative flags set by dialogue
-## choices and persists them to user://save.json so "Continue" works.
+## choices and discovered journal entry IDs, persisting them to
+## user://save.json so "Continue" works.
 
 signal state_changed
 
@@ -11,6 +12,8 @@ const SAVE_VERSION := 1
 
 ## Story flags set during play, e.g. {"trusted_edith": true}.
 var flags: Dictionary = {}
+## Ordered list of discovered journal entry IDs, e.g. ["edith_log_01"].
+var journal_entries: Array[String] = []
 ## Path of the scene the player should resume into.
 var current_scene: String = "res://scenes/game.tscn"
 
@@ -24,8 +27,21 @@ func get_flag(name: String, default: Variant = false) -> Variant:
 	return flags.get(name, default)
 
 
+func add_journal_entry(entry_id: String) -> bool:
+	if entry_id.is_empty() or journal_entries.has(entry_id):
+		return false
+	journal_entries.append(entry_id)
+	state_changed.emit()
+	return true
+
+
+func has_journal_entry(entry_id: String) -> bool:
+	return journal_entries.has(entry_id)
+
+
 func new_game() -> void:
 	flags.clear()
+	journal_entries.clear()
 	current_scene = "res://scenes/game.tscn"
 	state_changed.emit()
 
@@ -39,6 +55,7 @@ func save_game() -> bool:
 		"version": SAVE_VERSION,
 		"scene": current_scene,
 		"flags": flags,
+		"journal_entries": journal_entries,
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -69,6 +86,12 @@ func load_game() -> bool:
 	current_scene = data.get("scene", "res://scenes/game.tscn")
 	var loaded_flags: Variant = data.get("flags", {})
 	flags = loaded_flags if typeof(loaded_flags) == TYPE_DICTIONARY else {}
+	journal_entries.clear()
+	var loaded_entries: Variant = data.get("journal_entries", [])
+	if typeof(loaded_entries) == TYPE_ARRAY:
+		for entry in loaded_entries:
+			if typeof(entry) == TYPE_STRING and not entry.is_empty() and not journal_entries.has(entry):
+				journal_entries.append(entry)
 	state_changed.emit()
 	return true
 
