@@ -39,6 +39,10 @@ func has_journal_entry(entry_id: String) -> bool:
 	return journal_entries.has(entry_id)
 
 
+func get_journal_entries() -> Array[String]:
+	return journal_entries.duplicate()
+
+
 func new_game() -> void:
 	flags.clear()
 	journal_entries.clear()
@@ -54,8 +58,8 @@ func save_game() -> bool:
 	var payload := {
 		"version": SAVE_VERSION,
 		"scene": current_scene,
-		"flags": flags,
-		"journal_entries": journal_entries,
+		"flags": flags.duplicate(),
+		"journal_entries": journal_entries.duplicate(),
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -83,9 +87,10 @@ func load_game() -> bool:
 
 	var data: Dictionary = parsed
 	# Future-proofing: migrate older save versions here.
-	current_scene = data.get("scene", "res://scenes/game.tscn")
+	var loaded_scene: Variant = data.get("scene", "res://scenes/game.tscn")
+	current_scene = loaded_scene if typeof(loaded_scene) == TYPE_STRING else "res://scenes/game.tscn"
 	var loaded_flags: Variant = data.get("flags", {})
-	flags = loaded_flags if typeof(loaded_flags) == TYPE_DICTIONARY else {}
+	flags = loaded_flags.duplicate() if typeof(loaded_flags) == TYPE_DICTIONARY else {}
 	journal_entries.clear()
 	var loaded_entries: Variant = data.get("journal_entries", [])
 	if typeof(loaded_entries) == TYPE_ARRAY:
